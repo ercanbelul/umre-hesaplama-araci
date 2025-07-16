@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı v2.3 (Kararlı Sürüm)</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı v2.4 (Not Ekleme)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -14,11 +14,13 @@
     <style>
         body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
         .container { max-width: 900px; background-color: #fff; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px_8px rgba(0,0,0,0.05); }
-        h1, h2, h3, h4 { color: #003d73; font-weight: 600; }
+        h1, h2, h3, h4, h5 { color: #003d73; font-weight: 600; }
         h2 { border-bottom: 2px solid #dee2e6; padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 1.5rem; }
         .form-label { font-weight: 500; }
         #teklifCiktisi { border: 1px solid #dee2e6; padding: 2rem; margin-top: 2rem; border-radius: 0.5rem; background-color: #ffffff;}
         .btn-loading .spinner-border { width: 1.2rem; height: 1.2rem; }
+        /* Yazdığınız notlardaki satır başlarını korumak için */
+        .preserve-whitespace { white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -73,7 +75,14 @@
         <p class="text-muted">Toplam maliyet, belirtilen grup sayısına bölünecektir.</p>
         <div id="ulasimInputs"></div>
     </section>
-    
+
+    <section class="mt-4">
+        <h2><i class="bi bi-card-checklist"></i> Notlar</h2>
+        <div class="mb-3">
+            <label for="dahilHizmetlerNotu" class="form-label">Fiyata Dahil Olan Hizmetler</label>
+            <textarea class="form-control" id="dahilHizmetlerNotu" rows="4" placeholder="- Sabah Kahvaltısı ve Akşam Yemeği&#10;- Vize Ücreti&#10;- Tüm Ulaşımlar"></textarea>
+        </div>
+    </section>
     <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
         <span class="btn-text"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</span>
     </button>
@@ -86,7 +95,7 @@
 </div>
 
 <script>
-    // --- YARDIMCI FONKSİYONLAR ---
+    // --- YARDIMCI FONKSİYONLAR (Değişiklik Yok) ---
     function createRoomPriceInput(id,label,p){return`<div class="col-md-4 mb-3"><label class="form-label">${label} Günlük Oda Fiyatı</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createMealInput(id,p){return`<div class="col-md-12 mb-3"><label class="form-label">Kişi Başı Günlük Yemek Ücreti</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createVisaInput(id,l,p){return`<div class="col-md-12 mb-3"><label class="form-label">${l}</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
@@ -128,48 +137,34 @@
     
     function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
     
-    // --- KUR ÇEVRİM FONKSİYONLARI (TAMAMEN YENİLENDİ) ---
+    // --- KUR ÇEVRİM FONKSİYONLARI (Kararlı Sürüm) ---
     async function fetchRates() {
         try {
             const response = await fetch('https://api.frankfurter.app/latest?from=SAR&to=USD,EUR');
             if (!response.ok) throw new Error('API yanıt vermedi.');
             const data = await response.json();
-
             const usdPerSar = data.rates.USD;
             const eurPerSar = data.rates.EUR;
-            
-            // Tüm çevrimler için gerekli oranları tek bir objede topluyoruz.
             return {
-                USD_PER_SAR: usdPerSar, // SAR -> USD için
-                EUR_PER_SAR: eurPerSar, // SAR -> EUR için
-                SAR_PER_USD: 1 / usdPerSar, // USD -> SAR için
-                SAR_PER_EUR: 1 / eurPerSar  // EUR -> SAR için
+                USD_PER_SAR: usdPerSar, SAR_PER_USD: 1 / usdPerSar,
+                EUR_PER_SAR: eurPerSar, SAR_PER_EUR: 1 / eurPerSar
             };
         } catch (e) {
             console.error("Kur alınamadı:", e);
             alert("UYARI: Anlık kurlar alınamadı. Varsayılan kurlar kullanılacak.");
-            // Her iki yönlü çevrim için de varsayılan değerler
             return {
-                USD_PER_SAR: 0.27,
-                EUR_PER_SAR: 0.25,
-                SAR_PER_USD: 3.75,
-                SAR_PER_EUR: 4.05
+                USD_PER_SAR: 0.27, EUR_PER_SAR: 0.25,
+                SAR_PER_USD: 3.75, SAR_PER_EUR: 4.05
             };
         }
     }
     
-    // Bu fonksiyon, forma girilen herhangi bir para birimini SAR'a çevirir.
     function getSarValue(id, rates) {
         const amount = parseFloat(document.getElementById(id).value) || 0;
         const currency = document.getElementById(id + 'Currency').value;
-
-        if (currency === 'USD') {
-            return amount * rates.SAR_PER_USD;
-        }
-        if (currency === 'EUR') {
-            return amount * rates.SAR_PER_EUR;
-        }
-        return amount; // Zaten SAR ise, olduğu gibi döndür.
+        if (currency === 'USD') return amount * rates.SAR_PER_USD;
+        if (currency === 'EUR') return amount * rates.SAR_PER_EUR;
+        return amount;
     }
 
     // --- ANA HESAPLAMA VE RAPOR OLUŞTURMA FONKSİYONU ---
@@ -179,32 +174,24 @@
         calculateBtn.disabled = true;
         btnText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Hesaplama Yapılıyor...';
         
-        // 1. Gerekli tüm kur oranlarını tek seferde alıyoruz.
         const rates = await fetchRates(); 
-        
         const groupSize = parseInt(document.getElementById('grupKisiSayisi').value) || 1;
         const medineNights = parseInt(document.getElementById('medineGece').dataset.nights) || 0;
         const mekkeNights = parseInt(document.getElementById('mekkeGece').dataset.nights) || 0;
 
-        // 2. Tüm maliyetleri SAR cinsinden hesaplıyoruz.
-        // Artık 'getSarValue' fonksiyonuna 'rates' objesini gönderiyoruz.
         const vizePerPersonSar = getSarValue('vize', rates);
-
         const transportType = document.querySelector('input[name="transportType"]:checked').value;
         const vehicleCount = parseInt(document.getElementById(transportType + 'Count').value) || 1;
         const costPerVehicleSar = getSarValue(transportType + 'Cost', rates);
         const transportTotalCostSar = vehicleCount * costPerVehicleSar;
         const transportPerPersonSar = groupSize > 0 ? transportTotalCostSar / groupSize : 0;
-        
         const medineYemekDailySar = getSarValue('medineYemek', rates);
         const mekkeYemekDailySar = getSarValue('mekkeYemek', rates);
         const totalYemekPerPersonSar = (medineYemekDailySar * medineNights) + (mekkeYemekDailySar * mekkeNights);
-        
         const dailyRoomPricesSar = {
             medine: {dbl: getSarValue('medineDbl', rates), trpl: getSarValue('medineTrpl', rates), quad: getSarValue('medineQuad', rates)},
             mekke: {dbl: getSarValue('mekkeDbl', rates), trpl: getSarValue('mekkeTrpl', rates), quad: getSarValue('mekkeQuad', rates)}
         };
-        
         const totalsSar = {};
         const roomTypes = { dbl: 2, trpl: 3, quad: 4 };
         for (const type in roomTypes) {
@@ -232,10 +219,11 @@
             medineGece: document.getElementById('medineGece').value || 'N/A',
             mekkeGece: document.getElementById('mekkeGece').value || 'N/A',
             transportLabel: document.querySelector(`label[for="radio_${transportType}"]`).innerText,
-            toplamGece: (medineNights + mekkeNights) + " Gece"
+            toplamGece: (medineNights + mekkeNights) + " Gece",
+            // YENİ: Notu veriye ekliyoruz
+            dahilHizmetler: document.getElementById('dahilHizmetlerNotu').value
         };
         
-        // 3. Raporu oluştururken doğru oranlarla çarpma işlemi yapıyoruz.
         const teklifHTML = `
             <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
             <div class="row mb-4">
@@ -258,7 +246,13 @@
                     <tr><td><strong>QUAD Odada Kişi Başı</strong></td><td>${formatters.SAR.format(totalsSar.quad)}</td><td>${formatters.USD.format(totalsSar.quad * rates.USD_PER_SAR)}</td><td>${formatters.EUR.format(totalsSar.quad * rates.EUR_PER_SAR)}</td></tr>
                 </tbody>
             </table>
-            <div class="text-muted small mt-3"><p><strong>Not:</strong> Döviz kurları ${new Date().toLocaleString('tr-TR')} itibarıyla anlık olarak alınmıştır.</p></div>`;
+            
+            ${proposalData.dahilHizmetler ? `
+            <h5 class="mt-4">Fiyata Dahil Olan Hizmetler</h5>
+            <div class="text-muted small preserve-whitespace">${proposalData.dahilHizmetler}</div>
+            ` : ''}
+
+            <div class="text-muted small mt-4"><p><strong>Not:</strong> Döviz kurları ${new Date().toLocaleString('tr-TR')} itibarıyla anlık olarak alınmıştır.</p></div>`;
             
         const outputDiv = document.getElementById('teklifCiktisi');
         outputDiv.innerHTML = teklifHTML;
@@ -306,12 +300,21 @@
             ["DBL Odada Kişi Başı", totals.dbl, totals.dbl * rates.USD_PER_SAR, totals.dbl * rates.EUR_PER_SAR],
             ["TRPL Odada Kişi Başı", totals.trpl, totals.trpl * rates.USD_PER_SAR, totals.trpl * rates.EUR_PER_SAR],
             ["QUAD Odada Kişi Başı", totals.quad, totals.quad * rates.USD_PER_SAR, totals.quad * rates.EUR_PER_SAR],
-            [],
-            [`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]
+            []
         ];
+        
+        // YENİ: Notu Excel'e ekliyoruz (sadece not varsa)
+        if(data.dahilHizmetler){
+            ws_data.push(["Fiyata Dahil Olan Hizmetler:"]);
+            ws_data.push([data.dahilHizmetler]);
+            ws_data.push([]);
+        }
+
+        ws_data.push([`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]);
 
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+        // Geniş sütunlar
+        ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
         
         ['B13','C13','D13','B14','C14','D14','B15','C15','D15'].forEach(cell => {
             if(ws[cell]) {
@@ -322,7 +325,6 @@
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Fiyat Teklifi");
-
         const fileName = `Teklif_${data.firmaAdi.replace(/ /g, '_') || 'Genel'}.xlsx`;
         XLSX.writeFile(wb, fileName);
     }
