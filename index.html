@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı v2.6 (Son Düzeltmeler)</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı v2.7 (Kar Marjı)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -40,7 +40,6 @@
             <div class="col-md-3 mb-3"><label for="talepBitisTarihi" class="form-label">Teklif Bitiş Tarihi</label><input type="date" class="form-control" id="talepBitisTarihi"></div>
         </div>
     </section>
-    
     <section class="mt-4">
         <h2><i class="bi bi-moon-stars-fill"></i> Medine Otel Bilgileri</h2>
         <div class="row">
@@ -70,7 +69,6 @@
         <p class="text-muted">Toplam maliyet, belirtilen grup sayısına bölünecektir.</p>
         <div id="ulasimInputs"></div>
     </section>
-
     <section class="mt-4">
         <h2><i class="bi bi-card-checklist"></i> Notlar</h2>
         <div class="mb-3">
@@ -78,7 +76,35 @@
             <textarea class="form-control" id="dahilHizmetlerNotu" rows="4" placeholder="- Sabah Kahvaltısı ve Akşam Yemeği&#10;- Vize Ücreti&#10;- Tüm Ulaşımlar"></textarea>
         </div>
     </section>
-    
+
+    <section class="mt-4">
+        <h2><i class="bi bi-graph-up-arrow"></i> Kar Marjı Ayarları (Raporda Gizli)</h2>
+        <div class="p-3 border rounded">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="profitType" id="profitTypePercentage" value="percentage" onchange="toggleProfitInputs()" checked>
+                <label class="form-check-label" for="profitTypePercentage">Yüzdesel Kar Ekle</label>
+            </div>
+            <div class="input-group mt-2">
+                <input type="number" class="form-control" id="karYuzdesi" placeholder="15">
+                <span class="input-group-text">%</span>
+            </div>
+
+            <hr>
+
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="profitType" id="profitTypeFixed" value="fixed" onchange="toggleProfitInputs()">
+                <label class="form-check-label" for="profitTypeFixed">Kişi Başı Sabit Kar Ekle</label>
+            </div>
+            <div class="input-group mt-2">
+                <input type="number" class="form-control" id="sabitKar" placeholder="500" disabled>
+                <select class="form-select" id="sabitKarCurrency" style="max-width:100px" disabled>
+                    <option value="USD">USD</option>
+                    <option value="SAR" selected>SAR</option>
+                    <option value="EUR">EUR</option>
+                </select>
+            </div>
+        </div>
+    </section>
     <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
         <span class="btn-text"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</span>
     </button>
@@ -91,6 +117,7 @@
 </div>
 
 <script>
+    // --- YARDIMCI FONKSİYONLAR ---
     function createRoomPriceInput(id,label,p){return`<div class="col-md-4 mb-3"><label class="form-label">${label} Günlük Oda Fiyatı</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createMealInput(id,p){return`<div class="col-md-12 mb-3"><label class="form-label">Kişi Başı Günlük Yemek Ücreti</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createVisaInput(id,l,p){return`<div class="col-md-12 mb-3"><label class="form-label">${l}</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
@@ -124,6 +151,14 @@
         </div>`;
     }
 
+    // YENİ: Kar seçimine göre inputları aktif/pasif yapar
+    function toggleProfitInputs(){
+        const isPercentage = document.getElementById('profitTypePercentage').checked;
+        document.getElementById('karYuzdesi').disabled = !isPercentage;
+        document.getElementById('sabitKar').disabled = isPercentage;
+        document.getElementById('sabitKarCurrency').disabled = isPercentage;
+    }
+
     document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('medineInputs').innerHTML=`<div class="row">${createRoomPriceInput('medineDbl','DBL','600')}${createRoomPriceInput('medineTrpl','TRPL','750')}${createRoomPriceInput('medineQuad','QUAD','800')}</div><div class="row">${createMealInput('medineYemek','50')}</div>`;
         document.getElementById('mekkeInputs').innerHTML=`<div class="row">${createRoomPriceInput('mekkeDbl','DBL','800')}${createRoomPriceInput('mekkeTrpl','TRPL','950')}${createRoomPriceInput('mekkeQuad','QUAD','1000')}</div><div class="row">${createMealInput('mekkeYemek','60')}</div>`;
@@ -133,6 +168,7 @@
         t += createTransportInput('gmc', 'GMC', '7', '9000');
         document.getElementById('ulasimInputs').innerHTML=t;
         document.getElementById('talepTarihi').valueAsDate=new Date();
+        toggleProfitInputs(); // Sayfa yüklendiğinde de çalıştır
     });
     
     function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
@@ -181,6 +217,7 @@
         const totalDays = totalNights > 0 ? totalNights + 1 : 0;
         const otomatikPaketAdi = totalNights > 0 ? `${totalNights} Gece ${totalDays} Gün Umre Programı` : 'Belirtilmedi';
 
+        // Maliyetlerin Hesaplanması
         const vizePerPersonSar = getSarValue('vize', rates);
         const transportType = document.querySelector('input[name="transportType"]:checked').value;
         const vehicleCount = parseInt(document.getElementById(transportType + 'Count').value) || 1;
@@ -194,14 +231,34 @@
             medine: {dbl: getSarValue('medineDbl', rates), trpl: getSarValue('medineTrpl', rates), quad: getSarValue('medineQuad', rates)},
             mekke: {dbl: getSarValue('mekkeDbl', rates), trpl: getSarValue('mekkeTrpl', rates), quad: getSarValue('mekkeQuad', rates)}
         };
-        const totalsSar = {};
+        
+        // YENİ: Kar Marjı Hesaplaması
+        const profitType = document.querySelector('input[name="profitType"]:checked').value;
+        let profitToAddPerPersonSar = 0;
+        if (profitType === 'fixed') {
+             profitToAddPerPersonSar = getSarValue('sabitKar', rates);
+        }
+
+        const totalsSar = {}; // Son fiyat (Maliyet + Kar)
         const roomTypes = { dbl: 2, trpl: 3, quad: 4 };
+
         for (const type in roomTypes) {
             const personsInRoom = roomTypes[type];
             const medineRoomCostPerPerson = medineNights > 0 ? (dailyRoomPricesSar.medine[type] * medineNights) / personsInRoom : 0;
             const mekkeRoomCostPerPerson = mekkeNights > 0 ? (dailyRoomPricesSar.mekke[type] * mekkeNights) / personsInRoom : 0;
-            const totalRoomCostPerPerson = medineRoomCostPerPerson + mekkeRoomCostPerPerson;
-            totalsSar[type] = totalRoomCostPerPerson + totalYemekPerPersonSar + vizePerPersonSar + transportPerPersonSar;
+            
+            const costPerPersonBeforeProfit = medineRoomCostPerPerson + mekkeRoomCostPerPerson + totalYemekPerPersonSar + vizePerPersonSar + transportPerPersonSar;
+            
+            // Karı hesapla ve ekle
+            let currentProfit = 0;
+            if (profitType === 'percentage') {
+                const karYuzdesi = parseFloat(document.getElementById('karYuzdesi').value) || 0;
+                currentProfit = costPerPersonBeforeProfit * (karYuzdesi / 100);
+            } else { // 'fixed'
+                currentProfit = profitToAddPerPersonSar;
+            }
+            
+            totalsSar[type] = costPerPersonBeforeProfit + currentProfit;
         }
         
         const formatters = {
@@ -256,7 +313,7 @@
             <div class="text-muted small preserve-whitespace">${proposalData.dahilHizmetler}</div>
             ` : ''}
 
-            <div class="text-muted small mt-4"><p><strong>Not:</strong> Döviz kurları ${new Date().toLocaleString('tr-TR')} itibarıyla anlık olarak alınmıştır.</p></div>`;
+            <div class="text-muted small mt-4"><p><strong>Not:</strong> Döviz kurları 17.07.2025 itibarıyla anlık olarak alınmıştır.</p></div>`;
             
         const outputDiv = document.getElementById('teklifCiktisi');
         outputDiv.innerHTML = teklifHTML;
@@ -312,7 +369,7 @@
             ws_data.push([]);
         }
 
-        ws_data.push([`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]);
+        ws_data.push([`Not: Kurlar 17.07.2025 itibarıyla anlık olarak alınmıştır.`]);
 
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
         const priceRowStart = 14;
