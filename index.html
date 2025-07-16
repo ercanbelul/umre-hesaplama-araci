@@ -28,6 +28,11 @@
             padding: 2rem;
             background-color: #fff;
         }
+        /* Placeholder rengini biraz daha belirgin yapmak için */
+        .form-control::placeholder {
+            color: #888;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -45,15 +50,15 @@
         <div class="card-body row">
             <div class="col-md-4 mb-3">
                 <label for="groupSize" class="form-label">Grup Kişi Sayısı</label>
-                <input type="number" class="form-control" id="groupSize" value="40">
+                <input type="number" class="form-control" id="groupSize" placeholder="örn: 40">
             </div>
             <div class="col-md-4 mb-3">
                 <label for="usdRate" class="form-label">1 USD = ? SAR</label>
-                <input type="number" step="0.01" class="form-control" id="usdRate" value="3.75">
+                <input type="number" step="0.01" class="form-control" id="usdRate" placeholder="örn: 3.75">
             </div>
             <div class="col-md-4 mb-3">
                 <label for="eurRate" class="form-label">1 EUR = ? SAR</label>
-                <input type="number" step="0.01" class="form-control" id="eurRate" value="4.05">
+                <input type="number" step="0.01" class="form-control" id="eurRate" placeholder="örn: 4.05">
             </div>
         </div>
     </div>
@@ -63,10 +68,10 @@
             <div class="card">
                 <div class="card-header">Medine-i Münevvere Otel Bilgileri</div>
                 <div class="card-body">
-                    <input type="text" class="form-control mb-3" id="medineOtelAdi" placeholder="Otel Adı">
+                    <input type="text" class="form-control mb-3" id="medineOtelAdi" placeholder="Otel Adını Giriniz">
                     <div class="row mb-3">
-                        <div class="col"><input type="text" class="form-control" id="medineGiris" placeholder="Giriş Tarihi"></div>
-                        <div class="col"><input type="text" class="form-control" id="medineCikis" placeholder="Çıkış Tarihi"></div>
+                        <div class="col"><input type="text" class="form-control" id="medineGiris" placeholder="Giriş örn: 10.08.2025"></div>
+                        <div class="col"><input type="text" class="form-control" id="medineCikis" placeholder="Çıkış örn: 14.08.2025"></div>
                     </div>
                     <label class="form-label">Kişi Başı Oda Fiyatları</label>
                     <div id="medinePrices"></div>
@@ -77,10 +82,10 @@
             <div class="card">
                 <div class="card-header">Mekke-i Mükerreme Otel Bilgileri</div>
                 <div class="card-body">
-                    <input type="text" class="form-control mb-3" id="mekkeOtelAdi" placeholder="Otel Adı">
+                    <input type="text" class="form-control mb-3" id="mekkeOtelAdi" placeholder="Otel Adını Giriniz">
                     <div class="row mb-3">
-                        <div class="col"><input type="text" class="form-control" id="mekkeGiris" placeholder="Giriş Tarihi"></div>
-                        <div class="col"><input type="text" class="form-control" id="mekkeCikis" placeholder="Çıkış Tarihi"></div>
+                        <div class="col"><input type="text" class="form-control" id="mekkeGiris" placeholder="Giriş örn: 14.08.2025"></div>
+                        <div class="col"><input type="text" class="form-control" id="mekkeCikis" placeholder="Çıkış örn: 21.08.2025"></div>
                     </div>
                     <label class="form-label">Kişi Başı Oda Fiyatları</label>
                     <div id="mekkePrices"></div>
@@ -125,11 +130,11 @@
 
 <script>
     // Dinamik alanları oluşturan fonksiyon
-    function createPriceInput(idPrefix, label) {
+    function createPriceInput(idPrefix, label, placeholder) {
         return `
         <div class="input-group mb-2">
             <span class="input-group-text" style="width: 70px;">${label}</span>
-            <input type="number" class="form-control" id="${idPrefix}" value="0">
+            <input type="number" class="form-control" id="${idPrefix}" placeholder="${placeholder}">
             <select class="form-select currency-selector" id="${idPrefix}Currency">
                 <option value="SAR">SAR</option>
                 <option value="USD" selected>USD</option>
@@ -139,7 +144,7 @@
         `;
     }
 
-    function createTransportOption(id, label, type = 'total') {
+    function createTransportOption(id, label, placeholder, type = 'total') {
         const costLabel = type === 'total' ? 'Toplam Ücret' : 'Kişi Başı Ücret';
         return `
         <div class="input-group mb-3">
@@ -148,7 +153,7 @@
             </div>
             <span class="input-group-text" style="width: 150px;">${label}</span>
             <span class="input-group-text">${costLabel}</span>
-            <input type="number" class="form-control" id="${id}Cost" value="0">
+            <input type="number" class="form-control" id="${id}Cost" placeholder="${placeholder}">
             <select class="form-select currency-selector" id="${id}CostCurrency">
                 <option value="SAR">SAR</option>
                 <option value="USD" selected>USD</option>
@@ -167,24 +172,24 @@
         const mekkeYemekPriceDiv = document.getElementById('mekkeYemekPrice');
         const ulasimOptionsDiv = document.getElementById('ulasimOptions');
 
-        medinePricesDiv.innerHTML = createPriceInput('medineDbl', 'DBL') + createPriceInput('medineTrpl', 'TRPL') + createPriceInput('medineQuad', 'QUAD');
-        mekkePricesDiv.innerHTML = createPriceInput('mekkeDbl', 'DBL') + createPriceInput('mekkeTrpl', 'TRPL') + createPriceInput('mekkeQuad', 'QUAD');
+        medinePricesDiv.innerHTML = createPriceInput('medineDbl', 'DBL', 'örn: 800') + createPriceInput('medineTrpl', 'TRPL', 'örn: 750') + createPriceInput('medineQuad', 'QUAD', 'örn: 700');
+        mekkePricesDiv.innerHTML = createPriceInput('mekkeDbl', 'DBL', 'örn: 900') + createPriceInput('mekkeTrpl', 'TRPL', 'örn: 850') + createPriceInput('mekkeQuad', 'QUAD', 'örn: 800');
         
-        vizePriceDiv.innerHTML = createPriceInput('vize', 'Vize');
-        medineYemekPriceDiv.innerHTML = createPriceInput('medineYemek', 'Yemek');
-        mekkeYemekPriceDiv.innerHTML = createPriceInput('mekkeYemek', 'Yemek');
+        vizePriceDiv.innerHTML = createPriceInput('vize', 'Vize', 'örn: 150');
+        medineYemekPriceDiv.innerHTML = createPriceInput('medineYemek', 'Yemek', 'örn: 100');
+        mekkeYemekPriceDiv.innerHTML = createPriceInput('mekkeYemek', 'Yemek', 'örn: 120');
         
-        ulasimOptionsDiv.innerHTML = createTransportOption('bus', 'Otobüs (45 Kişi)') +
-                                    createTransportOption('high', 'High Araç (11 Kişi)') +
-                                    createTransportOption('gmc', 'GMC Araç') +
-                                    createTransportOption('train', 'Hızlı Tren', 'perPerson');
+        ulasimOptionsDiv.innerHTML = createTransportOption('bus', 'Otobüs (45 Kişi)', 'örn: 4500') +
+                                    createTransportOption('high', 'High Araç (11 Kişi)', 'örn: 2200') +
+                                    createTransportOption('gmc', 'GMC Araç', 'örn: 2800') +
+                                    createTransportOption('train', 'Hızlı Tren', 'örn: 160', 'perPerson');
     });
 
     function getValue(id) {
-        return {
-            amount: parseFloat(document.getElementById(id).value) || 0,
-            currency: document.getElementById(id + 'Currency').value
-        };
+        // Placeholder'lı bir input boşsa değeri 0 olarak kabul et
+        const amount = parseFloat(document.getElementById(id).value) || 0;
+        const currency = document.getElementById(id + 'Currency').value;
+        return { amount, currency };
     }
 
     function getCostInSar(valueObj, rates) {
@@ -196,8 +201,8 @@
     function createProposal() {
         const groupSize = parseInt(document.getElementById('groupSize').value) || 1;
         const rates = {
-            usd: parseFloat(document.getElementById('usdRate').value),
-            eur: parseFloat(document.getElementById('eurRate').value)
+            usd: parseFloat(document.getElementById('usdRate').value) || 3.75, // Boşsa varsayılan kur al
+            eur: parseFloat(document.getElementById('eurRate').value) || 4.05  // Boşsa varsayılan kur al
         };
         
         const hotelInfo = {
@@ -226,7 +231,8 @@
         } else {
             const totalCostSar = getCostInSar(transportValue, rates);
             transportCostSar = totalCostSar / groupSize;
-            transportLabel = document.querySelector(`input[value=${transportType}]`).closest('.input-group').querySelector('span').innerText.trim();
+            const transportInput = document.querySelector(`input[value=${transportType}]`);
+            transportLabel = transportInput.closest('.input-group').querySelector('.input-group-text:nth-of-type(2)').innerText.trim();
         }
 
         const finalCostsSar = {
@@ -243,12 +249,12 @@
                 <p class="lead">${new Date().toLocaleDateString('tr-TR')}</p>
             </div>
             <hr>
-            <p><strong>Grup Büyüklüğü:</strong> ${groupSize} Kişi</p>
+            <p><strong>Grup Büyüklüğü:</strong> ${document.getElementById('groupSize').value || 'N/A'} Kişi</p>
             
             <h5>Konaklama Detayları</h5>
             <ul>
-                <li><strong>Medine Oteli:</strong> ${hotelInfo.medine.name || 'Belirtilmedi'} (${hotelInfo.medine.checkin} - ${hotelInfo.medine.checkout})</li>
-                <li><strong>Mekke Oteli:</strong> ${hotelInfo.mekke.name || 'Belirtilmedi'} (${hotelInfo.mekke.checkin} - ${hotelInfo.mekke.checkout})</li>
+                <li><strong>Medine Oteli:</strong> ${hotelInfo.medine.name || 'Belirtilmedi'} (${hotelInfo.medine.checkin || 'N/A'} - ${hotelInfo.medine.checkout || 'N/A'})</li>
+                <li><strong>Mekke Oteli:</strong> ${hotelInfo.mekke.name || 'Belirtilmedi'} (${hotelInfo.mekke.checkin || 'N/A'} - ${hotelInfo.mekke.checkout || 'N/A'})</li>
             </ul>
             
             <h5>Ulaşım Detayı</h5>
