@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı (Otomatik Kur)</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı (Detaylı)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -32,21 +32,20 @@
             font-weight: 500;
             color: #495057;
         }
-        .input-group-text {
-            width: 85px;
-            font-size: 0.9rem;
-        }
         #teklifCiktisi {
             border: 1px solid #dee2e6;
             padding: 2rem;
             margin-top: 2rem;
             border-radius: 0.5rem;
         }
-        /* Buton için bekleme animasyonu */
         .btn-loading .spinner-border {
             width: 1.2rem;
             height: 1.2rem;
             margin-right: 0.5rem;
+        }
+        #countdownDisplay {
+            font-size: 1.1rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -89,63 +88,11 @@
     </section>
 
     <section class="mt-4">
-        <h2><i class="bi bi-building"></i> Medine Otel Bilgileri ve Maliyetleri</h2>
-        <div class="row">
+        <h2><i class="bi bi-box-seam-fill"></i> Paket Bilgileri</h2>
+        <div class="row align-items-center">
             <div class="col-md-12 mb-3">
-                <label for="medineOtelAdi" class="form-label">Otel Adı</label>
-                <input type="text" class="form-control" id="medineOtelAdi" placeholder="Medine Otel Adı">
+                <label for="paketAdi" class="form-label">Paket Adı</label>
+                <input type="text" class="form-control" id="paketAdi" placeholder="Örn: 15 Gecelik Ramazan Umresi">
             </div>
             <div class="col-md-4 mb-3">
-                <label for="medineGiris" class="form-label">Giriş Tarihi</label>
-                <input type="date" class="form-control" id="medineGiris" onchange="calculateNights()">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="medineCikis" class="form-label">Çıkış Tarihi</label>
-                <input type="date" class="form-control" id="medineCikis" onchange="calculateNights()">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="medineGece" class="form-label">Gece Sayısı</label>
-                <input type="text" class="form-control" id="medineGece" readonly>
-            </div>
-        </div>
-        <div id="medineInputs"></div>
-    </section>
-
-    <section class="mt-4">
-        <h2><i class="bi bi-moon-stars-fill"></i> Mekke Otel Bilgileri ve Maliyetleri</h2>
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <label for="mekkeOtelAdi" class="form-label">Otel Adı</label>
-                <input type="text" class="form-control" id="mekkeOtelAdi" placeholder="Mekke Otel Adı">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="mekkeGiris" class="form-label">Giriş Tarihi</label>
-                <input type="date" class="form-control" id="mekkeGiris" onchange="calculateNights()">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="mekkeCikis" class="form-label">Çıkış Tarihi</label>
-                <input type="date" class="form-control" id="mekkeCikis" onchange="calculateNights()">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="mekkeGece" class="form-label">Gece Sayısı</label>
-                <input type="text" class="form-control" id="mekkeGece" readonly>
-            </div>
-        </div>
-        <div id="mekkeInputs"></div>
-    </section>
-
-    <section class="mt-4">
-        <h2><i class="bi bi-passport-fill"></i> Vize Maliyeti</h2>
-        <div class="row">
-            <div class="col-md-6" id="vizeInputs"></div>
-        </div>
-    </section>
-
-    <section class="mt-4">
-        <h2><i class="bi bi-bus-front-fill"></i> Ulaşım Maliyetleri</h2>
-        <p class="text-muted">Lütfen teklife dahil edilecek ulaşım türünü seçin.</p>
-        <div id="ulasimInputs"></div>
-    </section>
-    
-    <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
-        <span class="btn-text"><i class="bi bi-calculator-fill"></i> Tek
+                <label for="paketBaslangic" class="form-label">Program Başlangıç Tarihi</label>
