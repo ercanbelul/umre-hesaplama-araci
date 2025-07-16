@@ -60,39 +60,86 @@
     <section>
         <h2><i class="bi bi-info-circle-fill"></i> Genel Bilgiler</h2>
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="firmaAdi" class="form-label">Firma Adı</label>
-                <input type="text" class="form-control" id="firmaAdi" placeholder="Firma Adı">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label for="grupLideri" class="form-label">Grup Lideri Adı</label>
-                <input type="text" class="form-control" id="grupLideri" placeholder="Grup Lideri">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label for="grupKisiSayisi" class="form-label">Grup Kişi Sayısı</label>
-                <input type="number" class="form-control" id="grupKisiSayisi" placeholder="40">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label for="talepTarihi" class="form-label">Talep Tarihi</label>
-                <input type="date" class="form-control" id="talepTarihi">
-            </div>
-             <div class="col-md-6 mb-3">
-                <label for="outputCurrency" class="form-label">Teklif Para Birimi</label>
-                <select id="outputCurrency" class="form-select">
-                    <option value="SAR" selected>SAR (Riyal)</option>
-                    <option value="USD">USD (Dolar)</option>
-                    <option value="EUR">EUR (Euro)</option>
-                </select>
-            </div>
+            <div class="col-md-6 mb-3"><label for="firmaAdi" class="form-label">Firma Adı</label><input type="text" class="form-control" id="firmaAdi" placeholder="Firma Adı"></div>
+            <div class="col-md-6 mb-3"><label for="grupLideri" class="form-label">Grup Lideri Adı</label><input type="text" class="form-control" id="grupLideri" placeholder="Grup Lideri"></div>
+            <div class="col-md-6 mb-3"><label for="grupKisiSayisi" class="form-label">Grup Kişi Sayısı</label><input type="number" class="form-control" id="grupKisiSayisi" placeholder="40"></div>
+            <div class="col-md-6 mb-3"><label for="talepTarihi" class="form-label">Talep Tarihi</label><input type="date" class="form-control" id="talepTarihi"></div>
+            <div class="col-md-6 mb-3"><label for="outputCurrency" class="form-label">Teklif Para Birimi</label><select id="outputCurrency" class="form-select"><option value="SAR" selected>SAR (Riyal)</option><option value="USD">USD (Dolar)</option><option value="EUR">EUR (Euro)</option></select></div>
         </div>
     </section>
 
     <section class="mt-4">
         <h2><i class="bi bi-box-seam-fill"></i> Paket Bilgileri</h2>
         <div class="row align-items-center">
-            <div class="col-md-12 mb-3">
-                <label for="paketAdi" class="form-label">Paket Adı</label>
-                <input type="text" class="form-control" id="paketAdi" placeholder="Örn: 15 Gecelik Ramazan Umresi">
-            </div>
-            <div class="col-md-4 mb-3">
-                <label for="paketBaslangic" class="form-label">Program Başlangıç Tarihi</label>
+            <div class="col-md-12 mb-3"><label for="paketAdi" class="form-label">Paket Adı</label><input type="text" class="form-control" id="paketAdi" placeholder="Örn: 15 Gecelik Ramazan Umresi"></div>
+            <div class="col-md-4 mb-3"><label for="paketBaslangic" class="form-label">Program Başlangıç Tarihi</label><input type="date" class="form-control" id="paketBaslangic" onchange="updatePackageDates()"></div>
+            <div class="col-md-4 mb-3"><label for="paketBitis" class="form-label">Program Bitiş Tarihi</label><input type="date" class="form-control" id="paketBitis" onchange="updatePackageDates()"></div>
+            <div class="col-md-4 mb-3"><label for="paketGeceSayisi" class="form-label">Toplam Gece Sayısı</label><input type="text" class="form-control" id="paketGeceSayisi" readonly></div>
+            <div class="col-12"><div id="countdownDisplay" class="alert alert-info text-center" role="alert" style="display: none;"></div></div>
+        </div>
+    </section>
+
+    <section class="mt-4">
+        <h2><i class="bi bi-building"></i> Medine Otel Bilgileri ve Maliyetleri</h2>
+        <div class="row">
+            <div class="col-md-12 mb-3"><label for="medineOtelAdi" class="form-label">Otel Adı</label><input type="text" class="form-control" id="medineOtelAdi" placeholder="Medine Otel Adı"></div>
+            <div class="col-md-4 mb-3"><label for="medineGiris" class="form-label">Giriş Tarihi</label><input type="date" class="form-control" id="medineGiris" onchange="calculateNights()"></div>
+            <div class="col-md-4 mb-3"><label for="medineCikis" class="form-label">Çıkış Tarihi</label><input type="date" class="form-control" id="medineCikis" onchange="calculateNights()"></div>
+            <div class="col-md-4 mb-3"><label for="medineGece" class="form-label">Gece Sayısı</label><input type="text" class="form-control" id="medineGece" readonly></div>
+        </div>
+        <div id="medineInputs"></div>
+    </section>
+
+    <section class="mt-4">
+        <h2><i class="bi bi-moon-stars-fill"></i> Mekke Otel Bilgileri ve Maliyetleri</h2>
+        <div class="row">
+            <div class="col-md-12 mb-3"><label for="mekkeOtelAdi" class="form-label">Otel Adı</label><input type="text" class="form-control" id="mekkeOtelAdi" placeholder="Mekke Otel Adı"></div>
+            <div class="col-md-4 mb-3"><label for="mekkeGiris" class="form-label">Giriş Tarihi</label><input type="date" class="form-control" id="mekkeGiris" onchange="calculateNights()"></div>
+            <div class="col-md-4 mb-3"><label for="mekkeCikis" class="form-label">Çıkış Tarihi</label><input type="date" class="form-control" id="mekkeCikis" onchange="calculateNights()"></div>
+            <div class="col-md-4 mb-3"><label for="mekkeGece" class="form-label">Gece Sayısı</label><input type="text" class="form-control" id="mekkeGece" readonly></div>
+        </div>
+        <div id="mekkeInputs"></div>
+    </section>
+
+    <section class="mt-4">
+        <h2><i class="bi bi-passport-fill"></i> Vize Maliyeti</h2>
+        <div class="row"><div class="col-md-6" id="vizeInputs"></div></div>
+    </section>
+
+    <section class="mt-4">
+        <h2><i class="bi bi-bus-front-fill"></i> Ulaşım Maliyetleri</h2>
+        <p class="text-muted">Lütfen teklife dahil edilecek ulaşım türünü seçin.</p>
+        <div id="ulasimInputs"></div>
+    </section>
+    
+    <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
+        <span class="btn-text"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</span>
+    </button>
+
+    <div id="teklifCiktisi" style="display:none;"></div>
+
+</div>
+
+<script>
+    function createPriceInput(id, label, placeholder) {return `<div class="col-md-4 mb-3"><label class="form-label">${label}</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${placeholder}"><select class="form-select" id="${id}Currency" style="max-width: 100px;"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`;}
+    function createMealInput(id, placeholder) {return `<div class="col-md-4 mb-3"><label class="form-label">Yemek Maliyeti (Kişi Başı)</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${placeholder}"><select class="form-select" id="${id}Currency" style="max-width: 100px;"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`;}
+    function createTransportInput(id, label, placeholder) {return `<div class="p-3 border rounded mb-3"><div class="form-check"><input class="form-check-input" type="radio" name="transportType" id="radio_${id}" value="${id}" ${id === 'bus' ? 'checked' : ''}><label class="form-check-label h5" for="radio_${id}">${label}</label></div><div class="row mt-2"><div class="col-md-4"><input type="number" class="form-control" placeholder="Araç Sayısı"></div><div class="col-md-4"><input type="number" class="form-control" placeholder="Yolcu Sayısı"></div><div class="col-md-4"><div class="input-group"><input type="number" class="form-control" id="${id}Cost" placeholder="${placeholder}"><select class="form-select" id="${id}CostCurrency" style="max-width: 100px;"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div></div></div>`;}
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('medineInputs').innerHTML = `<div class="row">${createPriceInput('medineDbl', 'DBL Oda', '600')}${createPriceInput('medineTrpl', 'TRPL Oda', '550')}${createPriceInput('medineQuad', 'QUAD Oda', '500')}${createMealInput('medineYemek', '150')}</div>`;
+        document.getElementById('mekkeInputs').innerHTML = `<div class="row">${createPriceInput('mekkeDbl', 'DBL Oda', '800')}${createPriceInput('mekkeTrpl', 'TRPL Oda', '750')}${createPriceInput('mekkeQuad', 'QUAD Oda', '700')}${createMealInput('mekkeYemek', '200')}</div>`;
+        document.getElementById('vizeInputs').innerHTML = createPriceInput('vize', 'Vize Maliyeti (Kişi Başı)', '550');
+        let transportHTML = createTransportInput('bus', 'Otobüs', '15000'); transportHTML += createTransportInput('hiace', 'Hi-ace', '7000'); transportHTML += createTransportInput('gmc', 'GMC', '9000');
+        document.getElementById('ulasimInputs').innerHTML = transportHTML;
+        document.getElementById('talepTarihi').valueAsDate = new Date();
+    });
+
+    function calculateNights() { ['medine', 'mekke'].forEach(city => { const giris = document.getElementById(`${city}Giris`).value; const cikis = document.getElementById(`${city}Cikis`).value; if (giris && cikis) { const date1 = new Date(giris); const date2 = new Date(cikis); if (date2 > date1) { const diffTime = Math.abs(date2 - date1); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); document.getElementById(`${city}Gece`).value = diffDays > 0 ? `${diffDays} Gece` : ''; } else { document.getElementById(`${city}Gece`).value = ''; } } }); }
+    function updatePackageDates() { const startDateEl = document.getElementById('paketBaslangic'); const endDateEl = document.getElementById('paketBitis'); const nightCountEl = document.getElementById('paketGeceSayisi'); const countdownEl = document.getElementById('countdownDisplay'); const startDate = startDateEl.value; const endDate = endDateEl.value; if (startDate && endDate) { const date1 = new Date(startDate); const date2 = new Date(endDate); if (date2 > date1) { const diffTime = Math.abs(date2 - date1); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); nightCountEl.value = `${diffDays} Gece`; } else { nightCountEl.value = ''; } } if (startDate) { const today = new Date(); today.setHours(0, 0, 0, 0); const arrivalDate = new Date(startDate); arrivalDate.setHours(0, 0, 0, 0); const diffTime = arrivalDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); countdownEl.style.display = 'block'; if (diffDays > 0) { countdownEl.className = 'alert alert-info text-center'; countdownEl.innerHTML = `<i class="bi bi-calendar-check"></i> Grubun gelişine <strong>${diffDays}</strong> gün kaldı.`; } else if (diffDays === 0) { countdownEl.className = 'alert alert-success text-center'; countdownEl.innerHTML = `<i class="bi bi-check-circle-fill"></i> Grup bugün geliyor!`; } else { countdownEl.className = 'alert alert-warning text-center'; countdownEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> Bu programın başlangıç tarihi geçmiş.`; } } else { countdownEl.style.display = 'none'; } }
+    async function fetchRates() { try { const response = await fetch('https://api.frankfurter.app/latest?to=SAR,USD,EUR'); if (!response.ok) throw new Error('Network response was not ok.'); const data = await response.json(); const eurToSar = data.rates.SAR; const eurToUsd = data.rates.USD; const rates = { usd: eurToSar / eurToUsd, eur: eurToSar, }; return rates; } catch (error) { console.error("Kur bilgisi alınamadı:", error); alert("Otomatik kur bilgisi alınamadı. Hesaplama varsayılan kurlar üzerinden yapılacaktır."); return { usd: 3.75, eur: 4.05 }; } }
+    function getSarValue(id, rates) { const amount = parseFloat(document.getElementById(id).value) || 0; const currency = document.getElementById(id + 'Currency').value; if (currency === 'USD') return amount * rates.usd; if (currency === 'EUR') return amount * rates.eur; return amount; }
+    async function createProposal() { const calculateBtn = document.getElementById('calculateBtn'); const btnText = calculateBtn.querySelector('.btn-text'); calculateBtn.disabled = true; btnText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kurlar Alınıyor...'; const rates = await fetchRates(); btnText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Hesaplama Yapılıyor...'; const groupSize = parseInt(document.getElementById('grupKisiSayisi').value) || 1; const outputCurrency = document.getElementById('outputCurrency').value; const costsSar = { vize: getSarValue('vize', rates), medineYemek: getSarValue('medineYemek', rates), mekkeYemek: getSarValue('mekkeYemek', rates), medineOda: { dbl: getSarValue('medineDbl', rates), trpl: getSarValue('medineTrpl', rates), quad: getSarValue('medineQuad', rates) }, mekkeOda: { dbl: getSarValue('mekkeDbl', rates), trpl: getSarValue('mekkeTrpl', rates), quad: getSarValue('mekkeQuad', rates) } }; const transportType = document.querySelector('input[name="transportType"]:checked').value; const transportTotalCostSar = getSarValue(transportType + 'Cost', rates); const transportPerPersonSar = transportTotalCostSar / groupSize; const totalsSar = {}; ['dbl', 'trpl', 'quad'].forEach(type => { totalsSar[type] = costsSar.medineOda[type] + costsSar.mekkeOda[type] + costsSar.vize + costsSar.medineYemek + costsSar.mekkeYemek + transportPerPersonSar; }); const convertFromSar = (amount) => { if (outputCurrency === 'USD') return amount / rates.usd; if (outputCurrency === 'EUR') return amount / rates.eur; return amount; }; const formatter = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: outputCurrency, maximumFractionDigits: 2 }); const proposalData = { paketAdi: document.getElementById('paketAdi').value || 'Belirtilmedi', paketGece: document.getElementById('paketGeceSayisi').value || 'N/A', firmaAdi: document.getElementById('firmaAdi').value || 'N/A', grupLideri: document.getElementById('grupLideri').value || 'N/A', grupKisiSayisi: document.getElementById('grupKisiSayisi').value || 'N/A', talepTarihi: new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR'), medineOtel: document.getElementById('medineOtelAdi').value || 'Belirtilmedi', mekkeOtel: document.getElementById('mekkeOtelAdi').value || 'Belirtilmedi', medineGece: document.getElementById('medineGece').value || 'N/A', mekkeGece: document.getElementById('mekkeGece').value || 'N/A', transportLabel: document.querySelector(`label[for="radio_${transportType}"]`).innerText }; const teklifHTML = `<h3 class="text-center mb-4">FİYAT TEKLİFİ</h3><div class="row mb-4"><div class="col-md-6"><p><strong>Firma Adı:</strong> ${proposalData.firmaAdi}</p><p><strong>Grup Lideri:</strong> ${proposalData.grupLideri}</p></div><div class="col-md-6 text-md-end"><p><strong>Talep Tarihi:</strong> ${proposalData.talepTarihi}</p><p><strong>Grup Kişi Sayısı:</strong> ${proposalData.grupKisiSayisi}</p></div></div><h4>Paket Bilgileri</h4><ul class="list-group list-group-flush mb-4"><li class="list-group-item"><strong>Paket Adı:</strong> ${proposalData.paketAdi}</li><li class="list-group-item"><strong>Toplam Süre:</strong> ${proposalData.paketGece}</li><li class="list-group-item"><strong>Medine Oteli:</strong> ${proposalData.medineOtel} (${proposalData.medineGece})</li><li class="list-group-item"><strong>Mekke Oteli:</strong> ${proposalData.mekkeOtel} (${proposalData.mekkeGece})</li></ul><h4>Fiyatlandırma Detayları (${outputCurrency})</h4><table class="table table-bordered"><thead class="table-light"><tr><th>Açıklama</th><th class="text-end">DBL Kişi Başı Fiyat</th><th class="text-end">TRPL Kişi Başı Fiyat</th><th class="text-end">QUAD Kişi Başı Fiyat</th></tr></thead><tbody><tr><td>Medine Konaklama</td><td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.dbl))}</td><td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.trpl))}</td><td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.quad))}</td></tr><tr><td>Mekke Konaklama</td><td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.dbl))}</td><td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.trpl))}</td><td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.quad))}</td></tr><tr><td>Yemek (Medine)</td><td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.medineYemek))}</td></tr><tr><td>Yemek (Mekke)</td><td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.mekkeYemek))}</td></tr><tr><td>Vize</td><td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.vize))}</td></tr><tr><td>Ulaşım (${proposalData.transportLabel})</td><td class="text-end" colspan="3">${formatter.format(convertFromSar(transportPerPersonSar))}</td></tr></tbody><tfoot><tr class="table-primary fw-bold"><td>KİŞİ BAŞI TOPLAM</td><td class="text-end">${formatter.format(convertFromSar(totalsSar.dbl))}</td><td class="text-end">${formatter.format(convertFromSar(totalsSar.trpl))}</td><td class="text-end">${formatter.format(convertFromSar(totalsSar.quad))}</td></tr></tfoot></table><div class="text-muted small mt-2">Not: Döviz kurları ${new Date().toLocaleString('tr-TR')} itibarıyla anlık olarak alınmıştır.</div>`; const outputDiv = document.getElementById('teklifCiktisi'); outputDiv.innerHTML = teklifHTML; outputDiv.style.display = 'block'; outputDiv.scrollIntoView({ behavior: 'smooth' }); calculateBtn.disabled = false; btnText.innerHTML = '<i class="bi bi-calculator-fill"></i> Teklif Oluştur'; }
+</script>
+
+</body>
+</html>
