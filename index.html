@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı (Otomatik Kur)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -42,6 +42,12 @@
             margin-top: 2rem;
             border-radius: 0.5rem;
         }
+        /* Buton için bekleme animasyonu */
+        .btn-loading .spinner-border {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +55,7 @@
 <div class="container my-5">
     <div class="text-center mb-5">
         <h1>Umre & Hac Maliyet Hesaplayıcı</h1>
+        <p class="text-muted">Döviz kurları anlık olarak otomatik çekilmektedir.</p>
     </div>
 
     <section>
@@ -70,28 +77,7 @@
                 <label for="talepTarihi" class="form-label">Talep Tarihi</label>
                 <input type="date" class="form-control" id="talepTarihi">
             </div>
-        </div>
-        <div class="row align-items-end">
-            <div class="col-md-8">
-                 <label class="form-label">Kur Bilgileri</label>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                       <div class="input-group">
-                         <span class="input-group-text">1 USD</span>
-                         <input type="number" step="0.01" class="form-control" id="usdRate" placeholder="3.75">
-                         <span class="input-group-text">SAR</span>
-                       </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="input-group">
-                         <span class="input-group-text">1 EUR</span>
-                         <input type="number" step="0.01" class="form-control" id="eurRate" placeholder="4.05">
-                         <span class="input-group-text">SAR</span>
-                       </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
+             <div class="col-md-6 mb-3">
                 <label for="outputCurrency" class="form-label">Teklif Para Birimi</label>
                 <select id="outputCurrency" class="form-select">
                     <option value="SAR" selected>SAR (Riyal)</option>
@@ -161,242 +147,5 @@
         <div id="ulasimInputs"></div>
     </section>
     
-    <button class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</button>
-
-    <div id="teklifCiktisi" style="display:none;"></div>
-
-</div>
-
-<script>
-    // Dinamik alanları oluşturmak için fonksiyonlar
-    function createPriceInput(id, label, placeholder) {
-        return `
-            <div class="col-md-4 mb-3">
-                <label class="form-label">${label}</label>
-                <div class="input-group">
-                    <input type="number" class="form-control" id="${id}" placeholder="${placeholder}">
-                    <select class="form-select" id="${id}Currency" style="max-width: 100px;">
-                        <option value="USD">USD</option>
-                        <option value="SAR" selected>SAR</option>
-                        <option value="EUR">EUR</option>
-                    </select>
-                </div>
-            </div>`;
-    }
-
-    function createMealInput(id, placeholder) {
-         return `
-            <div class="col-md-4 mb-3">
-                <label class="form-label">Yemek Maliyeti (Kişi Başı)</label>
-                <div class="input-group">
-                    <input type="number" class="form-control" id="${id}" placeholder="${placeholder}">
-                    <select class="form-select" id="${id}Currency" style="max-width: 100px;">
-                        <option value="USD">USD</option>
-                        <option value="SAR" selected>SAR</option>
-                        <option value="EUR">EUR</option>
-                    </select>
-                </div>
-            </div>`;
-    }
-
-    function createTransportInput(id, label, placeholder) {
-        return `
-            <div class="p-3 border rounded mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="transportType" id="radio_${id}" value="${id}" ${id === 'bus' ? 'checked' : ''}>
-                    <label class="form-check-label h5" for="radio_${id}">${label}</label>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-4"><input type="number" class="form-control" placeholder="Araç Sayısı"></div>
-                    <div class="col-md-4"><input type="number" class="form-control" placeholder="Yolcu Sayısı"></div>
-                    <div class="col-md-4">
-                        <div class="input-group">
-                            <input type="number" class="form-control" id="${id}Cost" placeholder="${placeholder}">
-                            <select class="form-select" id="${id}CostCurrency" style="max-width: 100px;">
-                                <option value="USD">USD</option>
-                                <option value="SAR" selected>SAR</option>
-                                <option value="EUR">EUR</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-    }
-    
-    // Sayfa yüklenince alanları oluştur
-    document.addEventListener('DOMContentLoaded', () => {
-        // Otel ve Yemek
-        document.getElementById('medineInputs').innerHTML = `<div class="row">${createPriceInput('medineDbl', 'DBL Oda', '600')}${createPriceInput('medineTrpl', 'TRPL Oda', '550')}${createPriceInput('medineQuad', 'QUAD Oda', '500')}${createMealInput('medineYemek', '150')}</div>`;
-        document.getElementById('mekkeInputs').innerHTML = `<div class="row">${createPriceInput('mekkeDbl', 'DBL Oda', '800')}${createPriceInput('mekkeTrpl', 'TRPL Oda', '750')}${createPriceInput('mekkeQuad', 'QUAD Oda', '700')}${createMealInput('mekkeYemek', '200')}</div>`;
-        // Vize
-        document.getElementById('vizeInputs').innerHTML = createPriceInput('vize', 'Vize Maliyeti (Kişi Başı)', '550');
-        // Ulaşım
-        let transportHTML = createTransportInput('bus', 'Otobüs', '15000');
-        transportHTML += createTransportInput('hiace', 'Hi-ace', '7000');
-        transportHTML += createTransportInput('gmc', 'GMC', '9000');
-        document.getElementById('ulasimInputs').innerHTML = transportHTML;
-        
-        // Tarih için bugünü ayarla
-        document.getElementById('talepTarihi').valueAsDate = new Date();
-    });
-
-    // Gece sayısını hesapla
-    function calculateNights() {
-        ['medine', 'mekke'].forEach(city => {
-            const giris = document.getElementById(`${city}Giris`).value;
-            const cikis = document.getElementById(`${city}Cikis`).value;
-            if (giris && cikis) {
-                const date1 = new Date(giris);
-                const date2 = new Date(cikis);
-                const diffTime = Math.abs(date2 - date1);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                document.getElementById(`${city}Gece`).value = diffDays > 0 ? `${diffDays} Gece` : '';
-            }
-        });
-    }
-
-    // Değerleri al ve SAR'a çevir
-    function getSarValue(id, rates) {
-        const amount = parseFloat(document.getElementById(id).value) || 0;
-        const currency = document.getElementById(id + 'Currency').value;
-        if (currency === 'USD') return amount * rates.usd;
-        if (currency === 'EUR') return amount * rates.eur;
-        return amount;
-    }
-
-    // Teklifi oluştur
-    function createProposal() {
-        const groupSize = parseInt(document.getElementById('grupKisiSayisi').value) || 1;
-        const rates = {
-            usd: parseFloat(document.getElementById('usdRate').value) || 3.75,
-            eur: parseFloat(document.getElementById('eurRate').value) || 4.05
-        };
-        const outputCurrency = document.getElementById('outputCurrency').value;
-
-        // Maliyetleri SAR cinsinden hesapla
-        const costsSar = {
-            vize: getSarValue('vize', rates),
-            medineYemek: getSarValue('medineYemek', rates),
-            mekkeYemek: getSarValue('mekkeYemek', rates),
-            medineOda: {
-                dbl: getSarValue('medineDbl', rates),
-                trpl: getSarValue('medineTrpl', rates),
-                quad: getSarValue('medineQuad', rates)
-            },
-            mekkeOda: {
-                dbl: getSarValue('mekkeDbl', rates),
-                trpl: getSarValue('mekkeTrpl', rates),
-                quad: getSarValue('mekkeQuad', rates)
-            }
-        };
-
-        const transportType = document.querySelector('input[name="transportType"]:checked').value;
-        const transportTotalCostSar = getSarValue(transportType + 'Cost', rates);
-        const transportPerPersonSar = transportTotalCostSar / groupSize;
-
-        // Oda tiplerine göre toplamları hesapla
-        const totalsSar = {};
-        ['dbl', 'trpl', 'quad'].forEach(type => {
-            totalsSar[type] = costsSar.medineOda[type] + costsSar.mekkeOda[type] + costsSar.vize + costsSar.medineYemek + costsSar.mekkeYemek + transportPerPersonSar;
-        });
-
-        // SAR'dan çıktı para birimine çevir
-        const convertFromSar = (amount) => {
-            if (outputCurrency === 'USD') return amount / rates.usd;
-            if (outputCurrency === 'EUR') return amount / rates.eur;
-            return amount;
-        };
-        
-        const formatter = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: outputCurrency });
-
-        // Çıktıyı oluştur
-        const proposalData = {
-            firmaAdi: document.getElementById('firmaAdi').value || 'N/A',
-            grupLideri: document.getElementById('grupLideri').value || 'N/A',
-            grupKisiSayisi: document.getElementById('grupKisiSayisi').value || 'N/A',
-            talepTarihi: new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR'),
-            medineOtel: document.getElementById('medineOtelAdi').value || 'Belirtilmedi',
-            mekkeOtel: document.getElementById('mekkeOtelAdi').value || 'Belirtilmedi',
-            medineGece: document.getElementById('medineGece').value || 'N/A',
-            mekkeGece: document.getElementById('mekkeGece').value || 'N/A',
-            transportLabel: document.querySelector(`label[for="radio_${transportType}"]`).innerText
-        };
-
-        const teklifHTML = `
-            <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <p><strong>Firma Adı:</strong> ${proposalData.firmaAdi}</p>
-                    <p><strong>Grup Lideri:</strong> ${proposalData.grupLideri}</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p><strong>Talep Tarihi:</strong> ${proposalData.talepTarihi}</p>
-                    <p><strong>Grup Kişi Sayısı:</strong> ${proposalData.grupKisiSayisi}</p>
-                </div>
-            </div>
-
-            <h4>Konaklama Bilgileri</h4>
-            <ul class="list-group list-group-flush mb-4">
-                <li class="list-group-item"><strong>Medine Oteli:</strong> ${proposalData.medineOtel} (${proposalData.medineGece})</li>
-                <li class="list-group-item"><strong>Mekke Oteli:</strong> ${proposalData.mekkeOtel} (${proposalData.mekkeGece})</li>
-            </ul>
-
-            <h4>Fiyatlandırma Detayları (${outputCurrency})</h4>
-            <table class="table table-bordered">
-                <thead class="table-light">
-                    <tr>
-                        <th>Açıklama</th>
-                        <th class="text-end">DBL Kişi Başı Fiyat</th>
-                        <th class="text-end">TRPL Kişi Başı Fiyat</th>
-                        <th class="text-end">QUAD Kişi Başı Fiyat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Medine Konaklama</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.dbl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.trpl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.medineOda.quad))}</td>
-                    </tr>
-                    <tr>
-                        <td>Mekke Konaklama</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.dbl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.trpl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(costsSar.mekkeOda.quad))}</td>
-                    </tr>
-                    <tr>
-                        <td>Yemek (Medine)</td>
-                        <td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.medineYemek))}</td>
-                    </tr>
-                     <tr>
-                        <td>Yemek (Mekke)</td>
-                        <td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.mekkeYemek))}</td>
-                    </tr>
-                    <tr>
-                        <td>Vize</td>
-                        <td class="text-end" colspan="3">${formatter.format(convertFromSar(costsSar.vize))}</td>
-                    </tr>
-                    <tr>
-                        <td>Ulaşım (${proposalData.transportLabel})</td>
-                        <td class="text-end" colspan="3">${formatter.format(convertFromSar(transportPerPersonSar))}</td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr class="table-primary fw-bold">
-                        <td>KİŞİ BAŞI TOPLAM</td>
-                        <td class="text-end">${formatter.format(convertFromSar(totalsSar.dbl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(totalsSar.trpl))}</td>
-                        <td class="text-end">${formatter.format(convertFromSar(totalsSar.quad))}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        `;
-        const outputDiv = document.getElementById('teklifCiktisi');
-        outputDiv.innerHTML = teklifHTML;
-        outputDiv.style.display = 'block';
-        outputDiv.scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
-
-</body>
-</html>
+    <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
+        <span class="btn-text"><i class="bi bi-calculator-fill"></i> Tek
