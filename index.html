@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı v2.4 (Not Ekleme)</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı v2.5 (Otomatik Paket Adı)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -19,7 +19,6 @@
         .form-label { font-weight: 500; }
         #teklifCiktisi { border: 1px solid #dee2e6; padding: 2rem; margin-top: 2rem; border-radius: 0.5rem; background-color: #ffffff;}
         .btn-loading .spinner-border { width: 1.2rem; height: 1.2rem; }
-        /* Yazdığınız notlardaki satır başlarını korumak için */
         .preserve-whitespace { white-space: pre-wrap; }
     </style>
 </head>
@@ -37,15 +36,11 @@
             <div class="col-md-6 mb-3"><label for="firmaAdi" class="form-label">Firma Adı</label><input type="text" class="form-control" id="firmaAdi" placeholder="Firma Adı"></div>
             <div class="col-md-6 mb-3"><label for="grupLideri" class="form-label">Grup Lideri Adı</label><input type="text" class="form-control" id="grupLideri" placeholder="Grup Lideri"></div>
             <div class="col-md-6 mb-3"><label for="grupKisiSayisi" class="form-label">Grup Kişi Sayısı</label><input type="number" class="form-control" id="grupKisiSayisi" placeholder="40"></div>
-            <div class="col-md-6 mb-3"><label for="talepTarihi" class="form-label">Talep Tarihi</label><input type="date" class="form-control" id="talepTarihi"></div>
+            <div class="col-md-3 mb-3"><label for="talepTarihi" class="form-label">Teklif Başlangıç Tarihi</label><input type="date" class="form-control" id="talepTarihi"></div>
+            <div class="col-md-3 mb-3"><label for="talepBitisTarihi" class="form-label">Teklif Bitiş Tarihi</label><input type="date" class="form-control" id="talepBitisTarihi"></div>
         </div>
     </section>
-    <section class="mt-4">
-        <h2><i class="bi bi-box-seam-fill"></i> Paket Bilgileri</h2>
-        <div class="row align-items-center">
-            <div class="col-md-12 mb-3"><label for="paketAdi" class="form-label">Paket Adı</label><input type="text" class="form-control" id="paketAdi" placeholder="Örn: 15 Gecelik Ramazan Umresi"></div>
-        </div>
-    </section>
+    
     <section class="mt-4">
         <h2><i class="bi bi-building"></i> Medine Otel Bilgileri</h2>
         <div class="row">
@@ -83,6 +78,7 @@
             <textarea class="form-control" id="dahilHizmetlerNotu" rows="4" placeholder="- Sabah Kahvaltısı ve Akşam Yemeği&#10;- Vize Ücreti&#10;- Tüm Ulaşımlar"></textarea>
         </div>
     </section>
+    
     <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
         <span class="btn-text"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</span>
     </button>
@@ -129,15 +125,20 @@
         </div>`;
     }
 
-    document.addEventListener('DOMContentLoaded',()=>{document.getElementById('medineInputs').innerHTML=`<div class="row">${createRoomPriceInput('medineDbl','DBL','600')}${createRoomPriceInput('medineTrpl','TRPL','750')}${createRoomPriceInput('medineQuad','QUAD','800')}</div><div class="row">${createMealInput('medineYemek','50')}</div>`;document.getElementById('mekkeInputs').innerHTML=`<div class="row">${createRoomPriceInput('mekkeDbl','DBL','800')}${createRoomPriceInput('mekkeTrpl','TRPL','950')}${createRoomPriceInput('mekkeQuad','QUAD','1000')}</div><div class="row">${createMealInput('mekkeYemek','60')}</div>`;document.getElementById('vizeInputs').innerHTML=createVisaInput('vize','Vize Maliyeti (Kişi Başı)','550');
-    let t = createTransportInput('bus', 'Otobüs', '50', '15000');
-    t += createTransportInput('hiace', 'Hi-ace', '13', '7000');
-    t += createTransportInput('gmc', 'GMC', '7', '9000');
-    document.getElementById('ulasimInputs').innerHTML=t;document.getElementById('talepTarihi').valueAsDate=new Date()});
+    document.addEventListener('DOMContentLoaded',()=>{
+        document.getElementById('medineInputs').innerHTML=`<div class="row">${createRoomPriceInput('medineDbl','DBL','600')}${createRoomPriceInput('medineTrpl','TRPL','750')}${createRoomPriceInput('medineQuad','QUAD','800')}</div><div class="row">${createMealInput('medineYemek','50')}</div>`;
+        document.getElementById('mekkeInputs').innerHTML=`<div class="row">${createRoomPriceInput('mekkeDbl','DBL','800')}${createRoomPriceInput('mekkeTrpl','TRPL','950')}${createRoomPriceInput('mekkeQuad','QUAD','1000')}</div><div class="row">${createMealInput('mekkeYemek','60')}</div>`;
+        document.getElementById('vizeInputs').innerHTML=createVisaInput('vize','Vize Maliyeti (Kişi Başı)','550');
+        let t = createTransportInput('bus', 'Otobüs', '50', '15000');
+        t += createTransportInput('hiace', 'Hi-ace', '13', '7000');
+        t += createTransportInput('gmc', 'GMC', '7', '9000');
+        document.getElementById('ulasimInputs').innerHTML=t;
+        document.getElementById('talepTarihi').valueAsDate=new Date();
+    });
     
     function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
     
-    // --- KUR ÇEVRİM FONKSİYONLARI (Kararlı Sürüm) ---
+    // --- KUR ÇEVRİM FONKSİYONLARI ---
     async function fetchRates() {
         try {
             const response = await fetch('https://api.frankfurter.app/latest?from=SAR&to=USD,EUR');
@@ -179,6 +180,11 @@
         const medineNights = parseInt(document.getElementById('medineGece').dataset.nights) || 0;
         const mekkeNights = parseInt(document.getElementById('mekkeGece').dataset.nights) || 0;
 
+        // YENİ: Otomatik Paket Adı oluşturuluyor
+        const totalNights = medineNights + mekkeNights;
+        const totalDays = totalNights + 1;
+        const otomatikPaketAdi = totalNights > 0 ? `${totalNights} Gece ${totalDays} Gün Umre Programı` : 'Belirtilmedi';
+
         const vizePerPersonSar = getSarValue('vize', rates);
         const transportType = document.querySelector('input[name="transportType"]:checked').value;
         const vehicleCount = parseInt(document.getElementById(transportType + 'Count').value) || 1;
@@ -208,31 +214,35 @@
             EUR: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
         };
         
+        // YENİ: Başlangıç ve bitiş tarihleri formatlanıyor
+        const talepTarihiFormatted = document.getElementById('talepTarihi').value ? new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
+        const talepBitisTarihiFormatted = document.getElementById('talepBitisTarihi').value ? new Date(document.getElementById('talepBitisTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
+
         const proposalData = {
-            paketAdi: document.getElementById('paketAdi').value || 'Belirtilmedi',
+            paketAdi: otomatikPaketAdi, // Otomatik isim kullanılıyor
             firmaAdi: document.getElementById('firmaAdi').value || 'N/A',
             grupLideri: document.getElementById('grupLideri').value || 'N/A',
             grupKisiSayisi: document.getElementById('grupKisiSayisi').value || 'N/A',
-            talepTarihi: document.getElementById('talepTarihi').value ? new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR') : new Date().toLocaleDateString('tr-TR'),
+            talepTarihi: talepTarihiFormatted,
+            talepBitisTarihi: talepBitisTarihiFormatted,
             medineOtel: document.getElementById('medineOtelAdi').value || 'Belirtilmedi',
             mekkeOtel: document.getElementById('mekkeOtelAdi').value || 'Belirtilmedi',
             medineGece: document.getElementById('medineGece').value || 'N/A',
             mekkeGece: document.getElementById('mekkeGece').value || 'N/A',
             transportLabel: document.querySelector(`label[for="radio_${transportType}"]`).innerText,
-            toplamGece: (medineNights + mekkeNights) + " Gece",
-            // YENİ: Notu veriye ekliyoruz
             dahilHizmetler: document.getElementById('dahilHizmetlerNotu').value
         };
         
+        // YENİ: Rapor HTML'i güncellendi
         const teklifHTML = `
             <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
             <div class="row mb-4">
                 <div class="col-md-6"><p><strong>Firma Adı:</strong> ${proposalData.firmaAdi}</p><p><strong>Grup Lideri:</strong> ${proposalData.grupLideri}</p></div>
-                <div class="col-md-6 text-md-end"><p><strong>Talep Tarihi:</strong> ${proposalData.talepTarihi}</p><p><strong>Grup Kişi Sayısı:</strong> ${proposalData.grupKisiSayisi}</p></div>
+                <div class="col-md-6 text-md-end"><p><strong>Teklif Geçerlilik Tarihi:</strong> ${proposalData.talepTarihi} - ${proposalData.talepBitisTarihi}</p><p><strong>Grup Kişi Sayısı:</strong> ${proposalData.grupKisiSayisi}</p></div>
             </div>
             <h4>Paket Detayları</h4>
             <ul class="list-group list-group-flush mb-4">
-                <li class="list-group-item"><strong>Paket Adı:</strong> ${proposalData.paketAdi} (${proposalData.toplamGece})</li>
+                <li class="list-group-item"><strong>Paket Adı:</strong> ${proposalData.paketAdi}</li>
                 <li class="list-group-item"><strong>Medine:</strong> ${proposalData.medineOtel} (${proposalData.medineGece})</li>
                 <li class="list-group-item"><strong>Mekke:</strong> ${proposalData.mekkeOtel} (${proposalData.mekkeGece})</li>
                 <li class="list-group-item"><strong>Ulaşım:</strong> ${proposalData.transportLabel} (${vehicleCount} adet)</li>
@@ -289,8 +299,9 @@
             [],
             ["Firma Adı:", data.firmaAdi],
             ["Grup Lideri:", data.grupLideri],
+            ["Teklif Geçerlilik Tarihi:", `${data.talepTarihi} - ${data.talepBitisTarihi}`],
             ["Grup Kişi Sayısı:", data.grupKisiSayisi],
-            ["Paket Adı:", `${data.paketAdi} (${data.toplamGece})`],
+            ["Paket Adı:", data.paketAdi],
             ["Medine:", `${data.medineOtel} (${data.medineGece})`],
             ["Mekke:", `${data.mekkeOtel} (${data.mekkeGece})`],
             ["Ulaşım:", `${data.transportLabel} (${vehicleCount} adet)`],
@@ -303,7 +314,6 @@
             []
         ];
         
-        // YENİ: Notu Excel'e ekliyoruz (sadece not varsa)
         if(data.dahilHizmetler){
             ws_data.push(["Fiyata Dahil Olan Hizmetler:"]);
             ws_data.push([data.dahilHizmetler]);
@@ -313,10 +323,9 @@
         ws_data.push([`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]);
 
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        // Geniş sütunlar
         ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
         
-        ['B13','C13','D13','B14','C14','D14','B15','C15','D15'].forEach(cell => {
+        ['B14','C14','D14','B15','C15','D15','B16','C16','D16'].forEach(cell => {
             if(ws[cell]) {
                 ws[cell].t = 'n';
                 ws[cell].z = '#,##0.00';
