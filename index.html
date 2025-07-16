@@ -91,7 +91,6 @@
 </div>
 
 <script>
-    // --- YARDIMCI FONKSİYONLAR (Değişiklik Yok) ---
     function createRoomPriceInput(id,label,p){return`<div class="col-md-4 mb-3"><label class="form-label">${label} Günlük Oda Fiyatı</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createMealInput(id,p){return`<div class="col-md-12 mb-3"><label class="form-label">Kişi Başı Günlük Yemek Ücreti</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createVisaInput(id,l,p){return`<div class="col-md-12 mb-3"><label class="form-label">${l}</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
@@ -138,7 +137,6 @@
     
     function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
     
-    // --- KUR ÇEVRİM FONKSİYONLARI ---
     async function fetchRates() {
         try {
             const response = await fetch('https://api.frankfurter.app/latest?from=SAR&to=USD,EUR');
@@ -168,7 +166,6 @@
         return amount;
     }
 
-    // --- ANA HESAPLAMA VE RAPOR OLUŞTURMA FONKSİYONU ---
     async function createProposal() {
         const calculateBtn = document.getElementById('calculateBtn');
         const btnText = calculateBtn.querySelector('.btn-text');
@@ -180,9 +177,8 @@
         const medineNights = parseInt(document.getElementById('medineGece').dataset.nights) || 0;
         const mekkeNights = parseInt(document.getElementById('mekkeGece').dataset.nights) || 0;
 
-        // YENİ: Otomatik Paket Adı oluşturuluyor
         const totalNights = medineNights + mekkeNights;
-        const totalDays = totalNights + 1;
+        const totalDays = totalNights > 0 ? totalNights + 1 : 0;
         const otomatikPaketAdi = totalNights > 0 ? `${totalNights} Gece ${totalDays} Gün Umre Programı` : 'Belirtilmedi';
 
         const vizePerPersonSar = getSarValue('vize', rates);
@@ -214,12 +210,11 @@
             EUR: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
         };
         
-        // YENİ: Başlangıç ve bitiş tarihleri formatlanıyor
         const talepTarihiFormatted = document.getElementById('talepTarihi').value ? new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
         const talepBitisTarihiFormatted = document.getElementById('talepBitisTarihi').value ? new Date(document.getElementById('talepBitisTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
 
         const proposalData = {
-            paketAdi: otomatikPaketAdi, // Otomatik isim kullanılıyor
+            paketAdi: otomatikPaketAdi,
             firmaAdi: document.getElementById('firmaAdi').value || 'N/A',
             grupLideri: document.getElementById('grupLideri').value || 'N/A',
             grupKisiSayisi: document.getElementById('grupKisiSayisi').value || 'N/A',
@@ -233,7 +228,6 @@
             dahilHizmetler: document.getElementById('dahilHizmetlerNotu').value
         };
         
-        // YENİ: Rapor HTML'i güncellendi
         const teklifHTML = `
             <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
             <div class="row mb-4">
@@ -277,7 +271,6 @@
         btnText.innerHTML = '<i class="bi bi-calculator-fill"></i> Tekrar Teklif Oluştur';
     }
 
-    // PDF İndirme Fonksiyonu
     function exportToPdf(firmaAdi) {
         const reportElement = document.getElementById('teklifCiktisi');
         const fileName = `Teklif_${firmaAdi.replace(/ /g, '_') || 'Genel'}.pdf`;
@@ -292,7 +285,6 @@
         });
     }
 
-    // Excel İndirme Fonksiyonu
     function exportToXlsx(data, totals, rates, vehicleCount) {
         const ws_data = [
             ["FİYAT TEKLİFİ"],
@@ -323,14 +315,18 @@
         ws_data.push([`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]);
 
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        const priceRowStart = 14;
         ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
         
-        ['B14','C14','D14','B15','C15','D15','B16','C16','D16'].forEach(cell => {
-            if(ws[cell]) {
-                ws[cell].t = 'n';
-                ws[cell].z = '#,##0.00';
-            }
-        });
+        for(let i = 0; i < 3; i++) {
+            ['B','C','D'].forEach(col => {
+                const cellRef = `${col}${priceRowStart + i}`;
+                 if(ws[cellRef]) {
+                    ws[cellRef].t = 'n';
+                    ws[cellRef].z = '#,##0.00';
+                }
+            });
+        }
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Fiyat Teklifi");
