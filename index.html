@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı v2</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı v2.1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -70,7 +70,7 @@
     </section>
     <section class="mt-4">
         <h2><i class="bi bi-bus-front-fill"></i> Ulaşım Maliyetleri</h2>
-        <p class="text-muted">Maliyet, toplam grup sayısına bölünecektir.</p>
+        <p class="text-muted">Toplam maliyet, belirtilen grup sayısına bölünecektir.</p>
         <div id="ulasimInputs"></div>
     </section>
     
@@ -86,176 +86,12 @@
 </div>
 
 <script>
-    // Dinamik input oluşturma ve diğer yardımcı fonksiyonlar (Değişiklik yok)
+    // Dinamik input oluşturma ve diğer yardımcı fonksiyonlar
     function createRoomPriceInput(id,label,p){return`<div class="col-md-4 mb-3"><label class="form-label">${label} Günlük Oda Fiyatı</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createMealInput(id,p){return`<div class="col-md-12 mb-3"><label class="form-label">Kişi Başı Günlük Yemek Ücreti</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
     function createVisaInput(id,l,p){return`<div class="col-md-12 mb-3"><label class="form-label">${l}</label><div class="input-group"><input type="number" class="form-control" id="${id}" placeholder="${p}"><select class="form-select" id="${id}Currency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div>`}
-    function createTransportInput(id,l,p){return`<div class="p-3 border rounded mb-3"><div class="form-check"><input class="form-check-input" type="radio" name="transportType" id="radio_${id}" value="${id}" ${id==='bus'?'checked':''}><label class="form-check-label h5" for="radio_${id}">${l}</label></div><div class="row mt-2"><div class="col-md-12"><label class="form-label">Toplam Araç Maliyeti</label><div class="input-group"><input type="number" class="form-control" id="${id}Cost" placeholder="${p}"><select class="form-select" id="${id}CostCurrency" style="max-width:100px"><option value="USD">USD</option><option value="SAR" selected>SAR</option><option value="EUR">EUR</option></select></div></div></div></div>`}
-    document.addEventListener('DOMContentLoaded',()=>{document.getElementById('medineInputs').innerHTML=`<div class="row">${createRoomPriceInput('medineDbl','DBL','600')}${createRoomPriceInput('medineTrpl','TRPL','750')}${createRoomPriceInput('medineQuad','QUAD','800')}</div><div class="row">${createMealInput('medineYemek','50')}</div>`;document.getElementById('mekkeInputs').innerHTML=`<div class="row">${createRoomPriceInput('mekkeDbl','DBL','800')}${createRoomPriceInput('mekkeTrpl','TRPL','950')}${createRoomPriceInput('mekkeQuad','QUAD','1000')}</div><div class="row">${createMealInput('mekkeYemek','60')}</div>`;document.getElementById('vizeInputs').innerHTML=createVisaInput('vize','Vize Maliyeti (Kişi Başı)','550');let t=createTransportInput('bus','Otobüs','15000');t+=createTransportInput('hiace','Hi-ace','7000');t+=createTransportInput('gmc','GMC','9000');document.getElementById('ulasimInputs').innerHTML=t;document.getElementById('talepTarihi').valueAsDate=new Date()});
-    function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
-    async function fetchRates(){try{const r=await fetch('https://api.frankfurter.app/latest?to=SAR,USD,EUR');if(!r.ok)throw new Error('Network response was not ok.');const d=await r.json();const s=d.rates.SAR;const u=d.rates.USD;return{usd:s/u,eur:s};}catch(e){console.error("Kur alınamadı:",e);alert("UYARI: Anlık kurlar alınamadı. Varsayılan kurlar kullanılacak.");return{usd:3.75,eur:4.05}}}
-    function getSarValue(i,r){const a=parseFloat(document.getElementById(i).value)||0;const c=document.getElementById(i+'Currency').value;if(c==='USD')return a*r.usd;if(c==='EUR')return a*r.eur;return a}
-
-    // --- ANA HESAPLAMA VE RAPOR OLUŞTURMA FONKSİYONU ---
-    async function createProposal() {
-        // Butonu geçici olarak devre dışı bırak
-        const calculateBtn = document.getElementById('calculateBtn');
-        const btnText = calculateBtn.querySelector('.btn-text');
-        calculateBtn.disabled = true;
-        btnText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Hesaplama Yapılıyor...';
-        
-        // Gerekli verileri al
-        const rates = await fetchRates();
-        const groupSize = parseInt(document.getElementById('grupKisiSayisi').value) || 1;
-        const medineNights = parseInt(document.getElementById('medineGece').dataset.nights) || 0;
-        const mekkeNights = parseInt(document.getElementById('mekkeGece').dataset.nights) || 0;
-
-        // Maliyetleri hesapla (Bu kısım aynı)
-        const vizePerPersonSar = getSarValue('vize', rates);
-        const transportType = document.querySelector('input[name="transportType"]:checked').value;
-        const transportTotalCostSar = getSarValue(transportType + 'Cost', rates);
-        const transportPerPersonSar = groupSize > 0 ? transportTotalCostSar / groupSize : 0;
-        const medineYemekDailySar = getSarValue('medineYemek', rates);
-        const mekkeYemekDailySar = getSarValue('mekkeYemek', rates);
-        const totalYemekPerPersonSar = (medineYemekDailySar * medineNights) + (mekkeYemekDailySar * mekkeNights);
-        const dailyRoomPricesSar = {
-            medine: {dbl: getSarValue('medineDbl', rates), trpl: getSarValue('medineTrpl', rates), quad: getSarValue('medineQuad', rates)},
-            mekke: {dbl: getSarValue('mekkeDbl', rates), trpl: getSarValue('mekkeTrpl', rates), quad: getSarValue('mekkeQuad', rates)}
-        };
-        const totalsSar = {};
-        const roomTypes = { dbl: 2, trpl: 3, quad: 4 };
-        for (const type in roomTypes) {
-            const personsInRoom = roomTypes[type];
-            const medineRoomCostPerPerson = medineNights > 0 ? (dailyRoomPricesSar.medine[type] * medineNights) / personsInRoom : 0;
-            const mekkeRoomCostPerPerson = mekkeNights > 0 ? (dailyRoomPricesSar.mekke[type] * mekkeNights) / personsInRoom : 0;
-            const totalRoomCostPerPerson = medineRoomCostPerPerson + mekkeRoomCostPerPerson;
-            totalsSar[type] = totalRoomCostPerPerson + totalYemekPerPersonSar + vizePerPersonSar + transportPerPersonSar;
-        }
-        
-        // *** YENİLİK 1: SAR formatı Latin rakamları kullanacak şekilde güncellendi ***
-        const formatters = {
-            // 'ar-SA' lokalini kullanmaya devam et ama 'numberingSystem' ile Latin rakamlarını zorunlu kıl.
-            SAR: new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0, numberingSystem: 'latn' }),
-            USD: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
-            EUR: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-        };
-        
-        const proposalData = {
-            paketAdi: document.getElementById('paketAdi').value || 'Belirtilmedi',
-            firmaAdi: document.getElementById('firmaAdi').value || 'N/A',
-            grupLideri: document.getElementById('grupLideri').value || 'N/A',
-            grupKisiSayisi: document.getElementById('grupKisiSayisi').value || 'N/A',
-            talepTarihi: new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR'),
-            medineOtel: document.getElementById('medineOtelAdi').value || 'Belirtilmedi',
-            mekkeOtel: document.getElementById('mekkeOtelAdi').value || 'Belirtilmedi',
-            medineGece: document.getElementById('medineGece').value || 'N/A',
-            mekkeGece: document.getElementById('mekkeGece').value || 'N/A',
-            transportLabel: document.querySelector(`label[for="radio_${transportType}"]`).innerText,
-            toplamGece: (medineNights + mekkeNights) + " Gece"
-        };
-
-        // Raporun HTML içeriğini oluştur
-        const teklifHTML = `
-            <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
-            <div class="row mb-4">
-                <div class="col-md-6"><p><strong>Firma Adı:</strong> ${proposalData.firmaAdi}</p><p><strong>Grup Lideri:</strong> ${proposalData.grupLideri}</p></div>
-                <div class="col-md-6 text-md-end"><p><strong>Talep Tarihi:</strong> ${proposalData.talepTarihi}</p><p><strong>Grup Kişi Sayısı:</strong> ${proposalData.grupKisiSayisi}</p></div>
-            </div>
-            <h4>Paket Detayları</h4>
-            <ul class="list-group list-group-flush mb-4">
-                <li class="list-group-item"><strong>Paket Adı:</strong> ${proposalData.paketAdi} (${proposalData.toplamGece})</li>
-                <li class="list-group-item"><strong>Medine:</strong> ${proposalData.medineOtel} (${proposalData.medineGece})</li>
-                <li class="list-group-item"><strong>Mekke:</strong> ${proposalData.mekkeOtel} (${proposalData.mekkeGece})</li>
-                <li class="list-group-item"><strong>Ulaşım:</strong> ${proposalData.transportLabel}</li>
-            </ul>
-            <h4 class="mt-4">Kişi Başı Her Şey Dahil Fiyatlar</h4>
-            <table class="table table-bordered table-striped text-center">
-                <thead class="table-primary"><tr><th>Oda Tipi</th><th>SAR (Riyal)</th><th>USD (Dolar)</th><th>EUR (Euro)</th></tr></thead>
-                <tbody>
-                    <tr><td><strong>DBL Odada Kişi Başı</strong></td><td>${formatters.SAR.format(totalsSar.dbl)}</td><td>${formatters.USD.format(totalsSar.dbl / rates.usd)}</td><td>${formatters.EUR.format(totalsSar.dbl / rates.eur)}</td></tr>
-                    <tr><td><strong>TRPL Odada Kişi Başı</strong></td><td>${formatters.SAR.format(totalsSar.trpl)}</td><td>${formatters.USD.format(totalsSar.trpl / rates.usd)}</td><td>${formatters.EUR.format(totalsSar.trpl / rates.eur)}</td></tr>
-                    <tr><td><strong>QUAD Odada Kişi Başı</strong></td><td>${formatters.SAR.format(totalsSar.quad)}</td><td>${formatters.USD.format(totalsSar.quad / rates.usd)}</td><td>${formatters.EUR.format(totalsSar.quad / rates.eur)}</td></tr>
-                </tbody>
-            </table>
-            <div class="text-muted small mt-3"><p><strong>Not:</strong> Döviz kurları ${new Date().toLocaleString('tr-TR')} itibarıyla anlık olarak alınmıştır.</p></div>`;
-            
-        // Raporu ve indirme butonlarını göster
-        const outputDiv = document.getElementById('teklifCiktisi');
-        outputDiv.innerHTML = teklifHTML;
-        outputDiv.style.display = 'block';
-        document.getElementById('exportButtons').style.display = 'block';
-        outputDiv.scrollIntoView({ behavior: 'smooth' });
-
-        // *** YENİLİK 2: İndirme butonlarına tıklama olaylarını ekle ***
-        document.getElementById('exportPdfBtn').onclick = () => exportToPdf(proposalData.firmaAdi);
-        document.getElementById('exportXlsxBtn').onclick = () => exportToXlsx(proposalData, totalsSar, rates, formatters);
-
-        // Hesaplama butonunu tekrar aktif et
-        calculateBtn.disabled = false;
-        btnText.innerHTML = '<i class="bi bi-calculator-fill"></i> Tekrar Teklif Oluştur';
-    }
-
-    // PDF İndirme Fonksiyonu
-    function exportToPdf(firmaAdi) {
-        const reportElement = document.getElementById('teklifCiktisi');
-        const fileName = `Teklif_${firmaAdi.replace(/ /g, '_') || 'Genel'}.pdf`;
-
-        // html2canvas ile raporun ekran görüntüsünü al
-        html2canvas(reportElement, { scale: 2 }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(fileName);
-        });
-    }
-
-    // Excel İndirme Fonksiyonu
-    function exportToXlsx(data, totals, rates, formatters) {
-        // Excel için veri yapısını oluştur
-        const ws_data = [
-            ["FİYAT TEKLİFİ"],
-            [], // Boş satır
-            ["Firma Adı:", data.firmaAdi],
-            ["Grup Lideri:", data.grupLideri],
-            ["Grup Kişi Sayısı:", data.grupKisiSayisi],
-            ["Paket Adı:", `${data.paketAdi} (${data.toplamGece})`],
-            ["Medine:", `${data.medineOtel} (${data.medineGece})`],
-            ["Mekke:", `${data.mekkeOtel} (${data.mekkeGece})`],
-            ["Ulaşım:", data.transportLabel],
-            [], // Boş satır
-            ["KİŞİ BAŞI FİYATLAR"],
-            ["Oda Tipi", "SAR", "USD", "EUR"],
-            ["DBL Odada Kişi Başı", totals.dbl, (totals.dbl / rates.usd), (totals.dbl / rates.eur)],
-            ["TRPL Odada Kişi Başı", totals.trpl, (totals.trpl / rates.usd), (totals.trpl / rates.eur)],
-            ["QUAD Odada Kişi Başı", totals.quad, (totals.quad / rates.usd), (totals.quad / rates.eur)],
-            [], // Boş satır
-            [`Not: Kurlar ${new Date().toLocaleString('tr-TR')} itibarıyla alınmıştır.`]
-        ];
-
-        // Çalışma sayfasını ve kitabını oluştur
-        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-        // Sütun genişliklerini ayarla
-        ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
-        
-        // Fiyatları sayı formatına çevir (Excel'de para birimi olarak görünsün diye)
-        ['B13','C13','D13','B14','C14','D14','B15','C15','D15'].forEach(cell => {
-            if(ws[cell]) {
-                ws[cell].t = 'n'; // type: number
-                ws[cell].z = '#,##0.00'; // format: 1,234.56
-            }
-        });
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Fiyat Teklifi");
-
-        const fileName = `Teklif_${data.firmaAdi.replace(/ /g, '_') || 'Genel'}.xlsx`;
-        XLSX.writeFile(wb, fileName);
-    }
-</script>
-
-</body>
-</html>
+    
+    // *** YENİ: Ulaşım inputları artık daha detaylı ***
+    function createTransportInput(id, label, capacity, placeholderCost) {
+        return `
+        <div class="p-3 border rounded
