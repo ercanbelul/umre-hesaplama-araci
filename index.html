@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umre & Hac Maliyet Hesaplayıcı v2.7 (Kar Marjı)</title>
+    <title>Umre & Hac Maliyet Hesaplayıcı v2.8 (Varsayılan Not)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -73,7 +73,7 @@
         <h2><i class="bi bi-card-checklist"></i> Notlar</h2>
         <div class="mb-3">
             <label for="dahilHizmetlerNotu" class="form-label">Fiyata Dahil Olan Hizmetler</label>
-            <textarea class="form-control" id="dahilHizmetlerNotu" rows="4" placeholder="- Sabah Kahvaltısı ve Akşam Yemeği&#10;- Vize Ücreti&#10;- Tüm Ulaşımlar"></textarea>
+            <textarea class="form-control" id="dahilHizmetlerNotu" rows="10" placeholder="1. Sabah kahvaltısı ve akşam yemeği&#10;2. Ulaşım (Mekke-i Mükerreme ve Medine-i Münevvere çevre ziyaretleri dâhildir. Havaalanından otellere ve Mekke–Medine arası transferleri kapsamaktadır.) Ayrıca vize masrafları da dâhildir.&#10;3. Operasyonel hizmetler (otel anahtar teslimi, karşılama ve uğurlama, otobüs takipleri, Medine-i Münevvere Ravza ziyaret takipleri, genel organizasyon koordinasyonu)&#10;4. İşlem takip hizmetleri (otel rezervasyonları, vize işlemleri, evrak süreçleri ve benzeri)&#10;---&#10;NOT: HİZMETLERİMİZE UÇAK ÜCRETİ DAHİL DEĞİLDİR.&#10;(TEKLİFİMİZ 01.08.2025 - 24.08.2025 TARİHLERİ ARASI GEÇERLİDİR.) Reserv. larınız teklif tarihinden en geç bir hafta sonrasına kadar talep edilmesi gerekmektedir."></textarea>
         </div>
     </section>
 
@@ -88,9 +88,7 @@
                 <input type="number" class="form-control" id="karYuzdesi" placeholder="15">
                 <span class="input-group-text">%</span>
             </div>
-
             <hr>
-
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="profitType" id="profitTypeFixed" value="fixed" onchange="toggleProfitInputs()">
                 <label class="form-check-label" for="profitTypeFixed">Kişi Başı Sabit Kar Ekle</label>
@@ -105,6 +103,7 @@
             </div>
         </div>
     </section>
+    
     <button id="calculateBtn" class="btn btn-primary w-100 btn-lg mt-4" onclick="createProposal()">
         <span class="btn-text"><i class="bi bi-calculator-fill"></i> Teklif Oluştur</span>
     </button>
@@ -151,7 +150,6 @@
         </div>`;
     }
 
-    // YENİ: Kar seçimine göre inputları aktif/pasif yapar
     function toggleProfitInputs(){
         const isPercentage = document.getElementById('profitTypePercentage').checked;
         document.getElementById('karYuzdesi').disabled = !isPercentage;
@@ -168,7 +166,7 @@
         t += createTransportInput('gmc', 'GMC', '7', '9000');
         document.getElementById('ulasimInputs').innerHTML=t;
         document.getElementById('talepTarihi').valueAsDate=new Date();
-        toggleProfitInputs(); // Sayfa yüklendiğinde de çalıştır
+        toggleProfitInputs();
     });
     
     function calculateNights(){['medine','mekke'].forEach(c=>{const g=document.getElementById(`${c}Giris`).value;const k=document.getElementById(`${c}Cikis`).value;const n=document.getElementById(`${c}Gece`);if(g&&k){const d1=new Date(g);const d2=new Date(k);if(d2>d1){const t=Math.abs(d2-d1);const f=Math.ceil(t/(1e3*60*60*24));n.value=f>0?`${f} Gece`:'';n.dataset.nights=f}else{n.value='';n.dataset.nights=0}}})}
@@ -217,7 +215,6 @@
         const totalDays = totalNights > 0 ? totalNights + 1 : 0;
         const otomatikPaketAdi = totalNights > 0 ? `${totalNights} Gece ${totalDays} Gün Umre Programı` : 'Belirtilmedi';
 
-        // Maliyetlerin Hesaplanması
         const vizePerPersonSar = getSarValue('vize', rates);
         const transportType = document.querySelector('input[name="transportType"]:checked').value;
         const vehicleCount = parseInt(document.getElementById(transportType + 'Count').value) || 1;
@@ -232,29 +229,26 @@
             mekke: {dbl: getSarValue('mekkeDbl', rates), trpl: getSarValue('mekkeTrpl', rates), quad: getSarValue('mekkeQuad', rates)}
         };
         
-        // YENİ: Kar Marjı Hesaplaması
         const profitType = document.querySelector('input[name="profitType"]:checked').value;
         let profitToAddPerPersonSar = 0;
         if (profitType === 'fixed') {
              profitToAddPerPersonSar = getSarValue('sabitKar', rates);
         }
 
-        const totalsSar = {}; // Son fiyat (Maliyet + Kar)
+        const totalsSar = {};
         const roomTypes = { dbl: 2, trpl: 3, quad: 4 };
 
         for (const type in roomTypes) {
             const personsInRoom = roomTypes[type];
             const medineRoomCostPerPerson = medineNights > 0 ? (dailyRoomPricesSar.medine[type] * medineNights) / personsInRoom : 0;
             const mekkeRoomCostPerPerson = mekkeNights > 0 ? (dailyRoomPricesSar.mekke[type] * mekkeNights) / personsInRoom : 0;
-            
             const costPerPersonBeforeProfit = medineRoomCostPerPerson + mekkeRoomCostPerPerson + totalYemekPerPersonSar + vizePerPersonSar + transportPerPersonSar;
             
-            // Karı hesapla ve ekle
             let currentProfit = 0;
             if (profitType === 'percentage') {
                 const karYuzdesi = parseFloat(document.getElementById('karYuzdesi').value) || 0;
                 currentProfit = costPerPersonBeforeProfit * (karYuzdesi / 100);
-            } else { // 'fixed'
+            } else {
                 currentProfit = profitToAddPerPersonSar;
             }
             
@@ -269,7 +263,7 @@
         
         const talepTarihiFormatted = document.getElementById('talepTarihi').value ? new Date(document.getElementById('talepTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
         const talepBitisTarihiFormatted = document.getElementById('talepBitisTarihi').value ? new Date(document.getElementById('talepBitisTarihi').value).toLocaleDateString('tr-TR') : 'N/A';
-
+        
         const proposalData = {
             paketAdi: otomatikPaketAdi,
             firmaAdi: document.getElementById('firmaAdi').value || 'N/A',
@@ -285,6 +279,9 @@
             dahilHizmetler: document.getElementById('dahilHizmetlerNotu').value
         };
         
+        // Döviz kuru notu için güncel tarihi al
+        const currentDate = new Date().toLocaleDateString('tr-TR');
+
         const teklifHTML = `
             <h3 class="text-center mb-4">FİYAT TEKLİFİ</h3>
             <div class="row mb-4">
@@ -313,7 +310,7 @@
             <div class="text-muted small preserve-whitespace">${proposalData.dahilHizmetler}</div>
             ` : ''}
 
-            <div class="text-muted small mt-4"><p><strong>Not:</strong> Döviz kurları 17.07.2025 itibarıyla anlık olarak alınmıştır.</p></div>`;
+            <div class="text-muted small mt-4"><p><strong>Not:</strong> Döviz kurları ${currentDate} itibarıyla anlık olarak alınmıştır.</p></div>`;
             
         const outputDiv = document.getElementById('teklifCiktisi');
         outputDiv.innerHTML = teklifHTML;
@@ -343,6 +340,7 @@
     }
 
     function exportToXlsx(data, totals, rates, vehicleCount) {
+        const currentDate = new Date().toLocaleDateString('tr-TR');
         const ws_data = [
             ["FİYAT TEKLİFİ"],
             [],
@@ -369,7 +367,7 @@
             ws_data.push([]);
         }
 
-        ws_data.push([`Not: Kurlar 17.07.2025 itibarıyla anlık olarak alınmıştır.`]);
+        ws_data.push([`Not: Kurlar ${currentDate} itibarıyla anlık olarak alınmıştır.`]);
 
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
         const priceRowStart = 14;
